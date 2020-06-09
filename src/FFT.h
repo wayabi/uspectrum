@@ -10,6 +10,7 @@ public:
 	void doFFT(double *buf);
 	static int get_nearest_2_exponentiation(int a);
 	static void invert_fft(double* spectrum, double* out, int size_buf);
+	static bool is2exponentiation(int a);
 
 private:
 	int size_buf;

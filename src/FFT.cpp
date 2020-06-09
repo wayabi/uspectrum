@@ -794,6 +794,17 @@ void FFT::doFFT(double *buf)
 	this->rdft(this->size_buf, 1, buf, this->ip, this->w);
 }
 
+bool FFT::is2exponentiation(int a)
+{
+	int v = 1;
+	for(int i=0;i<100;++i){
+		v *= 2;
+		if(a == v) return true;
+		if(v > a) return false;
+	}
+	return false;
+}
+
 int FFT::get_nearest_2_exponentiation(int a)
 {
 	int v = 1;
