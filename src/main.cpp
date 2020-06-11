@@ -76,13 +76,14 @@ int main(int argc, char** argv)
 		_le << "invalid AL context.";
 		return 1;
 	}
+	alcMakeContextCurrent(context_);
 
 	StdInThread stdin_thread;
 	stdin_thread.start(NULL);
 	audio_data ad_;
 	int range_offset_ = 0;
 	int range_length_ = 0;
-	double volume_ = 0.1;
+	double volume_ = 1.0;
 
 	while(true){
 		usleep(10*1000);
@@ -143,7 +144,7 @@ int main(int argc, char** argv)
 			}else if(command[0] == "p"){
 				vector<short> buf;
 				buf.resize(range_length_);
-				memcpy(&buf[0], &(ad_.buf_s_[range_offset_]), range_length_ * sizeof(short));
+				memcpy(&buf[0], &(ad_.buf_s_)[range_offset_], range_length_ * sizeof(short));
 				_li << "playing: " << buf.size();
 				audio_player::play(buf, volume_, ad_.sampling_rate_);
 			}else if(command[0] == "fp"){

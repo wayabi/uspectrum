@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <list>
+#include <functional>
 
 using namespace std;
 
