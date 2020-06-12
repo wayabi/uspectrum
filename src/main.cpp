@@ -79,6 +79,7 @@ int main(int argc, char** argv)
 	alcMakeContextCurrent(context_);
 
 	StdInThread stdin_thread;
+	stdin_thread.ss.push_back("l,a.wav");
 	stdin_thread.start(NULL);
 	audio_data ad_;
 	int range_offset_ = 0;
@@ -119,6 +120,7 @@ int main(int argc, char** argv)
 				_li << "fo <path_out> : fft output";
 				_li << "fp : fft play";
 				_li << "v <volume> : set volume play";
+				_li << "lf <path> : load spectrum data";
 			}else if(command[0] == "s"){
 				_li << "length: " << ad_.buf_s_.size();
 				_li << "sampling_rate: " << ad_.sampling_rate_;
@@ -169,6 +171,18 @@ int main(int argc, char** argv)
 				}
 				FFT fft(range_length_);
 				fft.doFFT(&buf_fft0[0]);
+				//high pass filter
+				for(int i=0;i<1;++i){
+					buf_fft0[i*2+0] = 0;
+					buf_fft0[i*2+1] = 0;
+				}
+				
+				for(int i=0;i<range_length_/2;++i){
+					buf_fft0[i*2+0] = sqrt(buf_fft0[i*2+0]*buf_fft0[i*2+0]+buf_fft0[i*2+1]*buf_fft0[i*2+1]);
+					buf_fft0[i*2+1] = buf_fft0[i*2+0];
+				}
+				
+
 				FFT::invert_fft(&buf_fft0[0], &buf_fft1[0], range_length_);
 				for(int i=0;i<num;++i){
 					for(int j=0;j<range_length_;++j){
@@ -186,7 +200,7 @@ int main(int argc, char** argv)
 					continue;
 				}
 				FILE* f_out;
-				if((f_out = fopen(command[1].c_str(), "w")) == NULL){
+				if((f_out = fopen(command[1].c_str(), "wb")) == NULL){
 					_le << "file open error: " << command[1];
 					continue;
 				}
@@ -198,9 +212,20 @@ int main(int argc, char** argv)
 				}
 				FFT fft(range_length_);
 				fft.doFFT(&buf_fft[0]);
+				//high pass filter
+				for(int i=0;i<1;++i){
+					buf_fft[i*2+0] = 0;
+					buf_fft[i*2+1] = 1;
+				}
 				fwrite(&buf_fft[0], range_length_ * sizeof(double), 1, f_out);
 				fclose(f_out);
 				_li << "wrote spectrum to: " << command[1];
+
+				stringstream ss_fft;
+				for(auto ite = buf_fft.begin();ite != buf_fft.end();++ite){
+					ss_fft << *ite << ", ";
+				}
+				_lt << ss_fft.str();
 
 			}else if(command[0] == "v" && command.size() >= 2){
 				double v = atof(command[1].c_str());
@@ -208,6 +233,49 @@ int main(int argc, char** argv)
 					_li << "set volume: " << v;
 					volume_ = v;
 				}
+			}else if(command[0] == "lf"){
+				if(command.size() < 2){
+					_le << "lf <path_spectrum>";
+					continue;
+				}
+				FILE* f;
+				if((f = fopen(command[1].c_str(), "rb")) == NULL){
+					_le << "file open error: " << command[1];
+					continue;
+				}
+				int size_file = Util::getSizeFile(command[1].c_str());
+				if(!FFT::is2exponentiation(size_file)){
+					_le << "file size must be 2 exponentiation. current:" << size_file;
+					fclose(f);
+					continue;
+				}
+				vector<double> spectrum;
+				int size_fft = size_file/sizeof(double);
+				_ld << "size_fft: " << size_fft;
+				spectrum.resize(size_fft);
+				fread(&spectrum[0], 1, size_file, f);
+				fclose(f);
+
+				int sampling_rate = 8000;
+				range_offset_ = 0;
+				range_length_ = sampling_rate * 3;
+				vector<double> buf0;
+				buf0.resize(size_fft);
+				vector<short> buf1;
+				buf1.resize(range_length_);
+				FFT::invert_fft(&spectrum[0], &buf0[0], size_fft);
+				int num = range_length_ / size_fft + (range_length_%size_fft==0?0:1);
+				for(int i=0;i<num;++i){
+					int size = (i==num-1?range_length_-i*size_fft:size_fft);
+					for(int j=0;j<size;++j){
+						buf1[i*size_fft+j] = (short)(buf0[j]*SHRT_MAX);
+					}
+				}
+				audio_data ad;
+				ad.buf_s_ = buf1;
+				ad.sampling_rate_ = sampling_rate;
+				ad_ = ad;
+				_li << command[1] << " loaded as spectrum.";
 			}
 		}
 	}
