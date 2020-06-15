@@ -10,7 +10,6 @@
 #include "s_mic_wait_rec.h"
 #include "s_mic_recording.h"
 
-#include "streaming_processor.h"
 #include "audio_data.h"
 
 class sm_mic : public sm {
@@ -26,12 +25,10 @@ public:
 		add_event<s_mic_recording, e_mic_stop_rec, s_mic_wait_rec>();
 
 		buf_voice_ = std::make_shared<mydeq<short>>(size_buf_);
-		sp_ = std::make_shared<streaming_processor>(size_buf_, (int)(constants::mergin_voice_start_sec * constants::sampling_rate), (int)(constants::mergin_voice_end_sec * constants::sampling_rate));
 		set_initial_state<s_mic_wait_rec>();
 	}
 
 	std::shared_ptr<audio_output> audio_output_;
-	std::shared_ptr<streaming_processor> sp_;
 	std::shared_ptr<mydeq<short>> buf_voice_;
 	//buf mergin 1sec
 	const int size_buf_ = (int)constants::sampling_rate * (constants::max_rec_length + 1.0f);

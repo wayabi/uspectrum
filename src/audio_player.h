@@ -8,6 +8,8 @@
 #include <list>
 #include <functional>
 
+#include "boost_util.h"
+
 using namespace std;
 
 
@@ -83,6 +85,7 @@ private:
 		for(auto ite = playing_.begin();ite != playing_.end();){
 			if((*ite)->free(time(NULL))){
 				ite = playing_.erase(ite);
+				_ld << "stop playing.";
 			}else{
 				++ite;
 			}
