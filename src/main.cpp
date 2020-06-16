@@ -173,8 +173,7 @@ int main(int argc, char** argv)
 				fft.doFFT(&buf_fft0[0]);
 				//high pass filter
 				for(int i=0;i<8;++i){
-					buf_fft0[i*2+0] = 0;
-					buf_fft0[i*2+1] = 0;
+					buf_fft0[i] = 0;
 				}
 				
 				for(int i=0;i<range_length_/2;++i){
@@ -226,8 +225,7 @@ int main(int argc, char** argv)
 				fft.doFFT(&buf_fft[0]);
 				//high pass filter
 				for(int i=0;i<8;++i){
-					buf_fft[i*2+0] = 0;
-					buf_fft[i*2+1] = 0;
+					buf_fft[i] = 0;
 				}
 				for(int i=0;i<range_length_/2;++i){
 					//buf_fft[i*2+1] = sqrt(buf_fft[i*2+0]*buf_fft[i*2+0]+buf_fft[i*2+1]*buf_fft[i*2+1]);
@@ -243,6 +241,7 @@ int main(int argc, char** argv)
 					ss_fft << *ite << ", ";
 				}
 				_lt << ss_fft.str();
+				_li << "save data. size: " << range_length_;
 
 			}else if(command[0] == "v" && command.size() >= 2){
 				double v = atof(command[1].c_str());

@@ -1,0 +1,8 @@
+a.out
+/obj/
+src/*.swp
+mm_loop.sh
+tmp/*
+tmp
+/out/
+a.wav
