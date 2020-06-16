@@ -85,7 +85,7 @@ private:
 		for(auto ite = playing_.begin();ite != playing_.end();){
 			if((*ite)->free(time(NULL))){
 				ite = playing_.erase(ite);
-				_ld << "stop playing.";
+				//_ld << "stop playing.";
 			}else{
 				++ite;
 			}

@@ -126,23 +126,31 @@ int main(int argc, char** argv)
 				_li << "sampling_rate: " << ad_.sampling_rate_;
 			}else if(command[0] == "r"){
 				if(ad_.buf_s_.size() == 0) continue;
-				if(command.size() < 3){
+				if(command.size() < 2){
 					_li << "r <range_offset> <range_length> : set range";
 					continue;
 				}
-
+			
+				int offset = atoi(command[1].c_str());
+				int len = 256;
 				if(command.size() >= 3){
-					int offset = atoi(command[1].c_str());
-					int len = atoi(command[2].c_str());
-					if(offset + len > ad_.buf_s_.size() || offset < 0 || len < 0){
-						_le << "invalid args, offset + len should be less or equal [" << ad_.buf_s_.size() << "]";
-						continue;
-					}
-					range_offset_ = offset;
-					range_length_ = len;
-					_li << "range_offset_ = " << range_offset_;
-					_li << "range_length_ = " << range_length_;
+					len = atoi(command[2].c_str());
 				}
+				if(offset + len > ad_.buf_s_.size() || offset < 0 || len < 0){
+					_le << "invalid args, offset + len should be less or equal [" << ad_.buf_s_.size() << "]";
+					continue;
+				}
+				range_offset_ = offset;
+				range_length_ = len;
+				_li << "range_offset_ = " << range_offset_;
+				_li << "range_length_ = " << range_length_;
+
+				vector<short> buf;
+				buf.resize(range_length_);
+				memcpy(&buf[0], &(ad_.buf_s_)[range_offset_], range_length_ * sizeof(short));
+				_li << "playing: " << buf.size();
+				audio_player::play(buf, volume_, ad_.sampling_rate_);
+
 			}else if(command[0] == "p"){
 				vector<short> buf;
 				buf.resize(range_length_);

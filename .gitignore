@@ -5,4 +5,4 @@ mm_loop.sh
 tmp/*
 tmp
 /out/
-a.wav
+*.wav
