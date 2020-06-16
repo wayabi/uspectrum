@@ -789,7 +789,7 @@ FFT::~FFT(void)
 void FFT::doFFT(double *buf)
 {
 	for(int i=0;i<this->size_buf;++i){
-		*(buf+i) = *(buf+i) * this->hanning_window[i];
+		*(buf+i) = *(buf+i);// * this->hanning_window[i];
 	}
 	this->rdft(this->size_buf, 1, buf, this->ip, this->w);
 }

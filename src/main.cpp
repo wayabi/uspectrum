@@ -172,14 +172,14 @@ int main(int argc, char** argv)
 				FFT fft(range_length_);
 				fft.doFFT(&buf_fft0[0]);
 				//high pass filter
-				for(int i=0;i<1;++i){
+				for(int i=0;i<8;++i){
 					buf_fft0[i*2+0] = 0;
 					buf_fft0[i*2+1] = 0;
 				}
 				
 				for(int i=0;i<range_length_/2;++i){
-					buf_fft0[i*2+0] = sqrt(buf_fft0[i*2+0]*buf_fft0[i*2+0]+buf_fft0[i*2+1]*buf_fft0[i*2+1]);
-					buf_fft0[i*2+1] = buf_fft0[i*2+0];
+					//buf_fft0[i*2+1] = sqrt(buf_fft0[i*2+0]*buf_fft0[i*2+0]+buf_fft0[i*2+1]*buf_fft0[i*2+1]);
+					//buf_fft0[i*2+0] = 0;
 				}
 				
 
@@ -189,6 +189,18 @@ int main(int argc, char** argv)
 						buf_wave[i*range_length_+j] = (short)(buf_fft1[j] * SHRT_MAX);
 					}
 				}
+
+				if(false){
+					Sound s;
+					s.monaural16 = &buf_wave[0];
+					s.channelnum = 1;
+					s.samplingrate = 8000;
+					s.bit_per_sample = 16;
+					s.datanum = buf_wave.size();
+					Write_Wave("./z.wav", &s);
+				}
+
+
 				audio_player::play(buf_wave, volume_, ad_.sampling_rate_);
 			}else if(command[0] == "fo"){
 				if(!FFT::is2exponentiation(range_length_)){
@@ -213,10 +225,15 @@ int main(int argc, char** argv)
 				FFT fft(range_length_);
 				fft.doFFT(&buf_fft[0]);
 				//high pass filter
-				for(int i=0;i<1;++i){
+				for(int i=0;i<8;++i){
 					buf_fft[i*2+0] = 0;
-					buf_fft[i*2+1] = 1;
+					buf_fft[i*2+1] = 0;
 				}
+				for(int i=0;i<range_length_/2;++i){
+					//buf_fft[i*2+1] = sqrt(buf_fft[i*2+0]*buf_fft[i*2+0]+buf_fft[i*2+1]*buf_fft[i*2+1]);
+					//buf_fft[i*2+0] = 0;
+				}
+
 				fwrite(&buf_fft[0], range_length_ * sizeof(double), 1, f_out);
 				fclose(f_out);
 				_li << "wrote spectrum to: " << command[1];
@@ -264,6 +281,17 @@ int main(int argc, char** argv)
 				vector<short> buf1;
 				buf1.resize(range_length_);
 				FFT::invert_fft(&spectrum[0], &buf0[0], size_fft);
+
+				/*
+				vector<double> buf2;
+				buf2.resize(size_fft);
+				for(int i=0;i<size_fft;++i){
+					double a = (i>size_fft/2? -2*i/(double)size_fft +2: 2*i/(double)size_fft);
+					int j=(i+size_fft/2)%size_fft;
+					buf2[i] = a*buf0[i] + (1-a)*buf0[j];
+				}
+				buf0 = buf2;
+				*/
 				int num = range_length_ / size_fft + (range_length_%size_fft==0?0:1);
 				for(int i=0;i<num;++i){
 					int size = (i==num-1?range_length_-i*size_fft:size_fft);
@@ -271,6 +299,7 @@ int main(int argc, char** argv)
 						buf1[i*size_fft+j] = (short)(buf0[j]*SHRT_MAX);
 					}
 				}
+
 				audio_data ad;
 				ad.buf_s_ = buf1;
 				ad.sampling_rate_ = sampling_rate;
