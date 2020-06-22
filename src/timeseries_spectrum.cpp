@@ -21,21 +21,23 @@ std::vector<double> timeseries_spectrum::get(double t)
 	auto ite0 = data_.begin();
 	auto ite1 = data_.begin();
 	for(auto ite = data_.begin();ite != data_.end();++ite){
-		if(ite->first <= t){
-			ite0 = ite;
-		}
 		if(ite->first >= t){
+			ite0 = ite;
+			ite1 = ite;
+		}
+		if(ite->first <= t){
 			ite1 = ite;
 			break;
 		}
 	}
 	double a = 0;
-	if(ite1->first > ite0->first){
-		a = (t - ite0->first) / (ite1->first - ite0->first);
+	if(ite1->first < ite0->first){
+		a = (ite0->first - t) / (ite0->first - ite1->first);
 	}
 	for(int i=0;i<size;++i){
-		ret[i] = ite0->second[i] * a + ite1->second[i] * (1-a);
+		ret[i] = ite0->second[i] * (1-a) + ite1->second[i] * a;
 	}
+
 	return ret;
 }
 
@@ -47,16 +49,16 @@ void timeseries_spectrum::calc_from_audio(const std::vector<double>& data, int s
 	buf.resize(size_fft);
 	FFT fft(size_fft);
 	for(int i=0;i<num;++i){
-		memcpy(&buf[0], &data[i*size_fft], size_fft);
+		memcpy(&buf[0], &data[i*size_fft], size_fft*sizeof(double));
 		fft.doFFT(&buf[0]);
 		for(int j=0;j<size_fft/2;++j){
 			buf[j*2+1] = sqrt(buf[j*2+0]*buf[j*2+0]+buf[j*2+1]*buf[j*2+1]);
 			buf[j*2+0] = 0;
 		}
-		data_.push_back(make_pair(i*unit, buf));
+		data_.push_back(make_pair(1-i*unit, buf));
 	}
-	memset(&buf[0], 0, buf.size());
-	data_.push_back(make_pair(1, buf));
+	memset(&buf[0], 0, buf.size()*sizeof(double));
+	data_.push_back(make_pair(0, buf));
 }
 
 bool timeseries_spectrum::load(const char* path)
