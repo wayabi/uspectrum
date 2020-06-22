@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 	int num_attenuation = 100;
 	for(int j=0;j<num_attenuation;++j){
 		stringstream ss_f;
-		ss_f << args.f_out << "_" << j;
+		ss_f << args.f_out << "/" << j;
 		if((f = fopen(ss_f.str().c_str(), "w")) == NULL){
 			_le << "file open error:" << args.f_out;
 			return 1;
