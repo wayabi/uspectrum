@@ -14,7 +14,29 @@ timeseries_spectrum::timeseries_spectrum()
 
 std::vector<double> timeseries_spectrum::get(double t)
 {
-
+	vector<double> ret;
+	if(data_.size() == 0) return ret;
+	int size = data_[0].second.size();
+	ret.resize(size);
+	auto ite0 = data_.begin();
+	auto ite1 = data_.begin();
+	for(auto ite = data_.begin();ite != data_.end();++ite){
+		if(ite->first <= t){
+			ite0 = ite;
+		}
+		if(ite->first >= t){
+			ite1 = ite;
+			break;
+		}
+	}
+	double a = 0;
+	if(ite1->first > ite0->first){
+		a = (t - ite0->first) / (ite1->first - ite0->first);
+	}
+	for(int i=0;i<size;++i){
+		ret[i] = ite0->second[i] * a + ite1->second[i] * (1-a);
+	}
+	return ret;
 }
 
 void timeseries_spectrum::calc_from_audio(const std::vector<double>& data, int size_fft)
@@ -69,7 +91,7 @@ bool timeseries_spectrum::save(const char* path)
 		return false;
 	}
 	FILE* f;
-	if((f = fopen(path, "rb")) == NULL){
+	if((f = fopen(path, "wb")) == NULL){
 		_le << "file open error: " << path;
 		return false;
 	}

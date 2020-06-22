@@ -28,6 +28,7 @@
 #include "StdInThread.h"
 #include "audio_data.h"
 #include "audio_player.h"
+#include "timeseries_spectrum.h"
 
 #include <boost/program_options.hpp>
 
@@ -119,6 +120,7 @@ int main(int argc, char** argv)
 				_li << "p : play";
 				_li << "fo <path_out> : fft output";
 				_li << "fp : fft play";
+				_li << "ft : fft time serices save";
 				_li << "v <volume> : set volume play";
 				_li << "lf <path> : load spectrum data";
 			}else if(command[0] == "s"){
@@ -251,6 +253,25 @@ int main(int argc, char** argv)
 				_lt << ss_fft.str();
 				_li << "save data. size: " << range_length_;
 
+			}else if(command[0] == "ft"){
+				if(command.size() < 3){
+					_le << "ft needs <path_out> <size_fft>";
+					continue;
+				}
+				vector<double> buf;
+				buf.resize(range_length_);
+				for(int i=0;i<range_length_;++i){
+					buf[i] = (double)ad_.buf_s_[i] / SHRT_MAX;
+				}
+				timeseries_spectrum ts;
+				int size_fft = atoi(command[2].c_str());
+				if(!FFT::is2exponentiation(size_fft)){
+					_le << "<size_fft> should be 2 exponentiation.";
+					continue;
+				}
+				ts.calc_from_audio(buf, size_fft);
+				ts.save(command[1].c_str());
+				_li << "save: " << command[1];
 			}else if(command[0] == "v" && command.size() >= 2){
 				double v = atof(command[1].c_str());
 				if(v >= 0.0 && v <= 1.0){
